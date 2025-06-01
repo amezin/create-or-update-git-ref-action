@@ -1,0 +1,101 @@
+name: ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  dist-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - run: npm ci
+      - run: npm run build
+
+      - id: diff
+        run: git diff --exit-code --color --ignore-space-at-eol --text dist/
+
+      - if: ${{ always() && steps.diff.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  test:
+    runs-on: ubuntu-latest
+    needs: dist-check
+    if: github.event.pull_request.head.repo.node_id == github.event.pull_request.base.repo.node_id
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate branch name
+        id: ref_name
+        run: |
+          REF_NAME="temp/test-branch-$GITHUB_RUN_ID"
+          echo "ref_name=$REF_NAME" >>"$GITHUB_OUTPUT"
+          echo "REF_NAME=$REF_NAME" >>"$GITHUB_ENV"
+
+      - name: Create branch at the current GITHUB_SHA
+        id: create
+        uses: ./.
+        with:
+          ref: refs/heads/${{ steps.ref_name.outputs.ref_name }}
+
+      - run: git fetch origin "$REF_NAME"
+      - run: test "$(git rev-parse FETCH_HEAD)" = "$GITHUB_SHA"
+
+      - name: Roll back to 6a7b6624c39c94df7690a29f46b4abd5ce03b845 (force required)
+        uses: ./.
+        with:
+          ref: refs/heads/${{ steps.ref_name.outputs.ref_name }}
+          sha: 6a7b6624c39c94df7690a29f46b4abd5ce03b845
+          force: true
+
+      - run: git fetch origin "$REF_NAME"
+      - run: test "$(git rev-parse FETCH_HEAD)" = "6a7b6624c39c94df7690a29f46b4abd5ce03b845"
+
+      - name: Try to move to the same commit
+        uses: ./.
+        with:
+          ref: refs/heads/${{ steps.ref_name.outputs.ref_name }}
+          sha: 6a7b6624c39c94df7690a29f46b4abd5ce03b845
+
+      - run: git fetch origin "$REF_NAME"
+      - run: test "$(git rev-parse FETCH_HEAD)" = "6a7b6624c39c94df7690a29f46b4abd5ce03b845"
+
+      - name: Move back to GITHUB_SHA (fast-forward)
+        uses: ./.
+        with:
+          ref: refs/heads/${{ steps.ref_name.outputs.ref_name }}
+
+      - run: git fetch origin "$REF_NAME"
+      - run: test "$(git rev-parse FETCH_HEAD)" = "$GITHUB_SHA"
+
+      - name: Delete test branch
+        uses: actions/github-script@v7
+        if: always() && steps.create.outcome == 'success'
+        with:
+          script: |
+            await github.rest.git.deleteRef({
+              owner: process.env.GITHUB_REPOSITORY_OWNER,
+              repo: process.env.GITHUB_REPOSITORY.split('/')[1],
+              ref: `heads/${process.env.REF_NAME}`,
+            });

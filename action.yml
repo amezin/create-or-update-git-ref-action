@@ -1,8 +1,5 @@
 name: Create or update Git reference
-description: >-
-  Create or update Git branch or tag through GitHub API.
-  If the branch or tag already exists, it will be moved to the new commit.
-  If the branch or tag does not exist, it will be created.
+description: Create or update a Git reference (branch or tag) through GitHub API
 
 inputs:
   repository:
@@ -31,70 +28,5 @@ inputs:
     required: true
 
 runs:
-  using: composite
-  steps:
-    - id: get-ref
-      uses: actions/github-script@v7
-      env:
-        INPUT_REPOSITORY: ${{ inputs.repository }}
-        INPUT_REF: ${{ inputs.ref }}
-
-      with:
-        github-token: ${{ inputs.github-token }}
-        result-encoding: string
-        script: |
-          const [owner, repo] = core.getInput('repository', { required: true }).split('/');
-          const ref = core.getInput('ref', { required: true }).replace(/^refs\//, '');
-
-          const { data } = await github.request('GET /repos/{owner}/{repo}/git/matching-refs/{ref}', {
-            owner,
-            repo,
-            ref,
-          });
-
-          return data.filter(result => result.ref === `refs/${ref}`)[0]?.object?.sha || '';
-
-    - if: steps.get-ref.outputs.result && steps.get-ref.outputs.result != inputs.sha
-      uses: actions/github-script@v7
-      env:
-        INPUT_REPOSITORY: ${{ inputs.repository }}
-        INPUT_REF: ${{ inputs.ref }}
-        INPUT_SHA: ${{ inputs.sha }}
-        INPUT_FORCE: ${{ inputs.force }}
-
-      with:
-        github-token: ${{ inputs.github-token }}
-        script: |
-          const [owner, repo] = core.getInput('repository', { required: true }).split('/');
-          const ref = core.getInput('ref', { required: true }).replace(/^refs\//, '');
-          const sha = core.getInput('sha', { required: true });
-          const force = core.getBooleanInput('force', { required: true });
-
-          return await github.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
-            owner,
-            repo,
-            ref,
-            sha,
-            force,
-          });
-
-    - if: '!steps.get-ref.outputs.result'
-      uses: actions/github-script@v7
-      env:
-        INPUT_REPOSITORY: ${{ inputs.repository }}
-        INPUT_REF: ${{ inputs.ref }}
-        INPUT_SHA: ${{ inputs.sha }}
-
-      with:
-        github-token: ${{ inputs.github-token }}
-        script: |
-          const [owner, repo] = core.getInput('repository', { required: true }).split('/');
-          const ref = core.getInput('ref', { required: true }).replace(/^refs\//, '');
-          const sha = core.getInput('sha', { required: true });
-
-          return await github.request('POST /repos/{owner}/{repo}/git/refs', {
-            owner,
-            repo,
-            ref: `refs/${ref}`,
-            sha,
-          });
+  using: node20
+  main: dist/index.js

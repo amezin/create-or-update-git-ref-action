@@ -1,0 +1,29 @@
+{
+  "name": "create-or-update-git-ref-action",
+  "private": true,
+  "description": "Create or update a Git reference (branch or tag) through GitHub API",
+  "homepage": "https://github.com/amezin/create-or-update-git-ref-action#readme",
+  "bugs": {
+    "url": "https://github.com/amezin/create-or-update-git-ref-action/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amezin/create-or-update-git-ref-action.git"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@octokit/plugin-request-log": "^6.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
+  },
+  "scripts": {
+    "build": "npx ncc build --source-map --license dependencies.txt src/"
+  }
+}
