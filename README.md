@@ -11,6 +11,13 @@ This action is intended to be used together with
 https://github.com/amezin/create-commit-action to update the branch head after
 commit, but can also be used standalone for other purposes.
 
+## Usage examples
+
+- Part of a workflow that creates/updates pull requests:
+  https://github.com/amezin/pull-request-generator/blob/main/.github/workflows/make-pull-request.yml
+
+- [Update major version tags of GitHub actions](./.github/workflows/update-major-tag.yml)
+
 ## Inputs
 
 ### `repository`
@@ -68,7 +75,3 @@ _Default_: `${{ github.token }}`
 ## Outputs
 
 Currently, none.
-
-## Usage example
-
-https://github.com/amezin/pull-request-generator/blob/main/.github/workflows/make-pull-request.yml
