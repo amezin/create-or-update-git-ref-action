@@ -125,7 +125,7 @@ jobs:
         uses: ./.
         with:
           ref: refs/heads/${{ steps.ref_name.outputs.ref_name }}
-          sha: 6a7b6624c39c94df7690a29f46b4abd5ce03b845
+          sha: 6a7b6624c39c94df7690a29
           force: true
 
       - run: git fetch origin "$REF_NAME"
