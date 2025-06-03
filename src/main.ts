@@ -1,27 +1,29 @@
-const { inspect } = require('node:util');
+import { inspect } from 'node:util';
 
-const core = require('@actions/core');
-const { getOctokit } = require('@actions/github');
-const { requestLog } = require('@octokit/plugin-request-log');
+import * as core from '@actions/core';
+import { getOctokit } from '@actions/github';
+import { requestLog } from '@octokit/plugin-request-log';
 
 class Repository {
-    constructor(octokit, repository) {
+    private readonly octokit: ReturnType<typeof getOctokit>;
+    private readonly owner: string;
+    private readonly repo: string;
+
+    constructor(octokit: ReturnType<typeof getOctokit>, repository: string) {
         const [owner, repo, ...extra] = repository.split('/');
 
         if (!owner || !repo || extra.length) {
             throw new Error(
-              `Invalid repository '${repository}'. Expected format {owner}/{repo}.`
+                `Invalid repository '${repository}'. Expected format {owner}/{repo}.`
             );
         }
 
-        Object.assign(this, {
-            octokit,
-            owner,
-            repo,
-        });
+        this.octokit = octokit;
+        this.owner = owner;
+        this.repo = repo;
     }
 
-    async listMatchingRefs(ref) {
+    async listMatchingRefs(ref: string) {
         const { octokit, owner, repo } = this;
 
         // Note: there is no need for pagination.
@@ -35,13 +37,13 @@ class Repository {
         return data;
     }
 
-    async getRef(ref) {
+    async getRef(ref: string) {
         const matching = await this.listMatchingRefs(ref);
 
         return matching.filter(result => result.ref === `refs/${ref}`)[0];
     }
 
-    async createRef(ref, sha) {
+    async createRef(ref: string, sha: string) {
         const { octokit, owner, repo } = this;
 
         await octokit.rest.git.createRef({
@@ -52,7 +54,7 @@ class Repository {
         });
     }
 
-    async updateRef(ref, sha, force) {
+    async updateRef(ref: string, sha: string, force: boolean) {
         const { octokit, owner, repo } = this;
 
         await octokit.rest.git.updateRef({
@@ -67,8 +69,12 @@ class Repository {
 
 async function run() {
     const log = {
-        debug: core.isDebug() ? console.debug.bind(console) : new Function(),
+        debug: core.isDebug()
+            ? console.debug.bind(console)
+            : (..._args: unknown[]) => {},
         info: console.info.bind(console),
+        warn: console.warn.bind(console),
+        error: console.error.bind(console),
     };
 
     const token = core.getInput('github-token', { required: true });
@@ -83,19 +89,13 @@ async function run() {
     const existing = await repo.getRef(ref);
 
     if (existing) {
-        repo.updateRef(ref, sha, force);
+        await repo.updateRef(ref, sha, force);
     } else {
-        repo.createRef(ref, sha);
+        await repo.createRef(ref, sha);
     }
 }
 
-async function runWithErrorHandling() {
-    try {
-        await run();
-    } catch (error) {
-        core.setFailed(`${error?.message ?? error}`);
-        core.debug(inspect(error));
-    }
-}
-
-runWithErrorHandling()
+run().catch((error: unknown) => {
+    core.setFailed(String(error));
+    core.debug(inspect(error));
+});

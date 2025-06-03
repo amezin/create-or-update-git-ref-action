@@ -24,3 +24,12 @@ updates:
         dependency-type: production
         update-types:
           - patch
+    ignore:
+      # Must match nodejs runtime version
+      - dependency-name: '@types/node'
+        update-types:
+          - version-update:semver-major
+      # Must match octokit version used by @actions/github
+      - dependency-name: '@octokit/plugin-request-log'
+        update-types:
+          - version-update:semver-major
