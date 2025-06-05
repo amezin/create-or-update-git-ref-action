@@ -149,12 +149,6 @@ jobs:
       - run: test "$(git rev-parse FETCH_HEAD)" = "$GITHUB_SHA"
 
       - name: Delete test branch
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         if: always() && steps.create.outcome == 'success'
-        with:
-          script: |
-            await github.rest.git.deleteRef({
-              owner: process.env.GITHUB_REPOSITORY_OWNER,
-              repo: process.env.GITHUB_REPOSITORY.split('/')[1],
-              ref: `heads/${process.env.REF_NAME}`,
-            });
+        run: |
+          git push origin ":refs/heads/$REF_NAME"
