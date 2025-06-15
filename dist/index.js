@@ -30081,7 +30081,9 @@ async function run() {
     const repo = new Repository(github, repository);
     const existing = await repo.getRef(ref);
     if (existing) {
-        await repo.updateRef(ref, sha, force);
+        if (existing.object.sha !== sha) {
+            await repo.updateRef(ref, sha, force);
+        }
     }
     else {
         await repo.createRef(ref, sha);
