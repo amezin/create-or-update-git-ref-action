@@ -24,15 +24,13 @@ commit, but can also be used standalone for other purposes.
 
 The owner and repository name, in `owner/name` format.
 
-_Default_: `${{ github.repository }}` - the repository where the workflow was
-triggered.
+**Default**: `${{ github.repository }}` - the repository where the workflow was triggered.
 
 ### `ref`
 
-Git reference name to update or create, with `refs/heads/` or `refs/tags/`
-prefix.
+Git reference name to update or create, **with** `refs/heads/` or `refs/tags/` prefix.
 
-_Default_: `${{ github.ref }}` - the branch that triggered the workflow run.
+**Default**: `${{ github.ref }}` - the branch that triggered the workflow run.
 
 > [!NOTE]
 > The default value for `pull_request` event is `refs/pull/PULL_REQUEST_NUMBER/merge`.
@@ -42,12 +40,11 @@ _Default_: `${{ github.ref }}` - the branch that triggered the workflow run.
 
 Target commit SHA that the branch or tag should point to.
 
-_Default_: `${{ github.sha }}` - the commit that triggered the workflow.
+**Default**: `${{ github.sha }}` - the commit that triggered the workflow.
 
 > [!NOTE]
 > At least one of `ref` and `sha` should be set to a non-default value.
-> Otherwise, you're just updating the "current" branch head to the same commit
-> it already points to.
+> Otherwise, you're just updating the "current" branch head to the same commit it already points to.
 
 ### `force`
 
@@ -57,7 +54,7 @@ When set to `true`, the behavior is similar to `git push --force`.
 
 When set to `false` (default), the behavior is similar to `git push` without `--force`.
 
-_Default_: `false`
+**Default**: `false`
 
 ### `github-token`
 
@@ -65,11 +62,11 @@ GitHub API token to use.
 
 Must have `contents: write` permission.
 
-_Default_: `${{ github.token }}`
+**Default**: `${{ github.token }}`
 
 > [!NOTE]
-> If you want GitHub Actions workflows to be triggered from `push` event, you
-> should use a custom token (app installation or personal access token):
+> If you want GitHub Actions workflows to be triggered from `push` event,
+> you should use a custom token (app installation or personal access token):
 > https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow
 
 ## Outputs
