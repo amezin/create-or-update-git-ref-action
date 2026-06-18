@@ -5,7 +5,7 @@ on:
 
 jobs:
   shared:
-    uses: amezin/js-actions-common/.github/workflows/shared-dependency-review.yml@06c4924164b0f9e608fbb977b6d0331ebee42e3f # v5.0.0
+    uses: amezin/js-actions-common/.github/workflows/shared-dependency-review.yml@60415ed634a78024d3cc1eeda0bf6b91ca4285b7 # v5.1.1
     permissions:
       contents: read
       pull-requests: write
